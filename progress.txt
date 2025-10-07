@@ -1,0 +1,19 @@
+IN THIS PROJECT WE ARE TRYING TO IMPLEMENT RAGPLUS RESEARCH PAPER FOR LEGAL DOMAIN BASED ON INDIAN LAW AND JJUDICIARY SYSTEM.
+
+TILL NOW  :
+knowledge corpus is cleaned
+code for application corpus is ready
+
+
+FURTHER STEPS :
+run the appplicationcorpus.ipytnb codes
+    steps :
+        1. download dependencies
+        2.set api keys for serpapi and grok
+        3.select the no of selected_datapoints
+        4. run the code by changing in mentioned section
+        5.get the applicationcorpus
+convert both into vector databases
+create rag application for This
+check the retieval accuracy 
+refine the ragplus model
