@@ -1,0 +1,3 @@
+Indices of successfully processed data points: [4, 11, 14, 18, 22, 24, 25]
+Indices of successfully processed data points: [1, 2, 13, 14, 27] +26 to all
+Indices of successfully processed data points: [4, 8, 17, 21]+100

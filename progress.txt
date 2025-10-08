@@ -3,7 +3,14 @@ IN THIS PROJECT WE ARE TRYING TO IMPLEMENT RAGPLUS RESEARCH PAPER FOR LEGAL DOMA
 TILL NOW  :
 knowledge corpus is cleaned
 code for application corpus is ready
+checked the data and changes made in the code for efficient crawling and reasoning 
 
+
+done building application corpus in blocks 
+for ~200 datapoints only around 19 were found  
+confused what to do
+serpapi api limit reached
+changed model for reasoning generation
 
 FURTHER STEPS :
 run the appplicationcorpus.ipytnb codes
