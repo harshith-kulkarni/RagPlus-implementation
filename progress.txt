@@ -1,26 +1,15 @@
 IN THIS PROJECT WE ARE TRYING TO IMPLEMENT RAGPLUS RESEARCH PAPER FOR LEGAL DOMAIN BASED ON INDIAN LAW AND JJUDICIARY SYSTEM.
 
 TILL NOW  :
-knowledge corpus is cleaned
-code for application corpus is ready
-checked the data and changes made in the code for efficient crawling and reasoning 
+ GENERATED 200 DATAPOINTS FOR KNOWLEDGE CORPUS AND APPLICATION CORPUS
+ USING TEXT SECTION , THE COMPLETE DATA IS SENT TO THE LLM AND THEN KNOWLEDGE POINT , APPLICATION POINT , REASONING , SUMMARY OF CASE ARE GENERATED 
+ THE DATA IS APPENDED TO THE RELATIVE CORPORA 
+ SEMENTIC SI ILARITY OF BOTH THE CORPORA ARE TESTED
+ SIMILARITY IS TESTED
+
+ RESULTS :
+ Mean Semantic Similarity Score: 0.631759524345398
 
 
-done building application corpus in blocks 
-for ~200 datapoints only around 19 were found  
-confused what to do
-serpapi api limit reached
-changed model for reasoning generation
-
-FURTHER STEPS :
-run the appplicationcorpus.ipytnb codes
-    steps :
-        1. download dependencies
-        2.set api keys for serpapi and grok
-        3.select the no of selected_datapoints
-        4. run the code by changing in mentioned section
-        5.get the applicationcorpus
-convert both into vector databases
-create rag application for This
-check the retieval accuracy 
-refine the ragplus model
+ TO DO :
+ AS THE SEMENTIC SIMILARITY IS GOOD ,  BUILD RAG APLIACATION FORLEGAL DOMAIN  ,TEST AND CHECK FOR METRICS 
