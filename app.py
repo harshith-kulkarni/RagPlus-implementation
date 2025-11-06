@@ -10,7 +10,7 @@ from datetime import datetime
 
 # Page configuration
 st.set_page_config(
-    page_title="⚖️ Advanced RAG+ Legal AI",
+    page_title=" Advanced RAG+ Legal AI",
     page_icon="⚖️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -86,12 +86,47 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Configuration - Using Streamlit secrets for deployment
+# Configuration - Handle both local development and deployment
+import os
+
 try:
+    # Try Streamlit secrets first (for deployment)
     PINECONE_API_KEY = st.secrets["PINECONE_API_KEY"]
     GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
-except KeyError:
-    st.error("❌ API keys not found in Streamlit secrets. Please add them in the Streamlit Cloud dashboard.")
+    st.info("🔑 Using Streamlit secrets for API keys")
+except (KeyError, FileNotFoundError):
+    # Fallback to environment variables (for local development)
+    try:
+        PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+        GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+        
+        if not PINECONE_API_KEY or not GEMINI_API_KEY:
+            # Try reading from .env file
+            try:
+                with open('.env', 'r') as f:
+                    for line in f:
+                        if line.startswith('PINECONE_API_KEY'):
+                            PINECONE_API_KEY = line.split('=')[1].strip().strip('"')
+                        elif line.startswith('GEMINI_API_KEY'):
+                            GEMINI_API_KEY = line.split('=')[1].strip().strip('"')
+                st.info("🔑 Using .env file for API keys")
+            except FileNotFoundError:
+                st.error("❌ No API keys found. Please check your configuration.")
+                st.info("📖 See DEPLOYMENT_GUIDE.md for setup instructions.")
+                st.stop()
+        else:
+            st.info("🔑 Using environment variables for API keys")
+    except Exception as e:
+        st.error(f"❌ Error loading API keys: {e}")
+        st.stop()
+
+# Validate API keys
+if not PINECONE_API_KEY or not GEMINI_API_KEY:
+    st.error("❌ API keys are empty. Please check your configuration.")
+    st.stop()
+
+if PINECONE_API_KEY == "your_pinecone_api_key_here" or GEMINI_API_KEY == "your_gemini_api_key_here":
+    st.error("❌ Please replace placeholder API keys with actual keys.")
     st.stop()
 
 KNOWLEDGE_INDEX = "legal-knowledge-corpus"
@@ -479,7 +514,7 @@ def main():
         knowledge_matches = len(result['retrieval_results']['knowledge'])
         application_matches = len(result['retrieval_results']['applications'])
         
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3= st.columns(3)
         
         with col1:
             st.markdown(f"""
@@ -505,14 +540,67 @@ def main():
             </div>
             """, unsafe_allow_html=True)
         
-        with col4:
-            accuracy = (result['actual_word_count'] / result['word_count']) * 100
-            st.markdown(f"""
-            <div class="metric-card">
-                <h2>{accuracy:.0f}%</h2>
-                <p>🎯 Target Accuracy</p>
-            </div>
-            """, unsafe_allow_html=True)
+        
+        
+        # Enhanced Sources Display - This is what was missing!
+        st.markdown("### 📚 Retrieved Corpus Data Analysis")
+        
+        if result['retrieval_results']['knowledge']:
+            st.markdown("#### 📖 Legal Knowledge Sources Retrieved")
+            for i, doc in enumerate(result['retrieval_results']['knowledge'], 1):
+                with st.expander(f"📜 [STATUTE {i}] {doc['section_reference']} (Relevance Score: {doc['score']:.4f})", expanded=False):
+                    col1, col2 = st.columns([1, 3])
+                    with col1:
+                        st.metric("Relevance Score", f"{doc['score']:.4f}")
+                        st.metric("Document ID", doc['id'][:12] + "...")
+                        st.metric("Type", doc['type'])
+                    
+                    with col2:
+                        st.markdown(f"**📋 Section Reference:**")
+                        st.info(doc['section_reference'])
+                        
+                        st.markdown(f"**⚖️ Complete Legal Text:**")
+                        st.text_area("", doc['statutory_text'], height=200, key=f"knowledge_text_{i}", disabled=True)
+                        
+                        st.markdown(f"**❓ Original Question:**")
+                        st.text_area("", doc['original_question'], height=100, key=f"knowledge_question_{i}", disabled=True)
+                        
+                        if doc['context']:
+                            st.markdown(f"**📝 Additional Context:**")
+                            st.text_area("", doc['context'], height=100, key=f"knowledge_context_{i}", disabled=True)
+        
+        if result['mode'] == "RAG+" and result['retrieval_results']['applications']:
+            st.markdown("#### ⚖️ Case Law & Application Sources Retrieved")
+            for i, doc in enumerate(result['retrieval_results']['applications'], 1):
+                with st.expander(f"🏛️ [CASE {i}] {doc['case_name']} (Relevance Score: {doc['score']:.4f})", expanded=False):
+                    col1, col2 = st.columns([1, 3])
+                    with col1:
+                        st.metric("Relevance Score", f"{doc['score']:.4f}")
+                        st.metric("Document ID", doc['id'][:12] + "...")
+                        st.metric("Year", doc['year'] if doc['year'] else "N/A")
+                        st.metric("Type", doc['type'])
+                    
+                    with col2:
+                        st.markdown(f"**🏛️ Case Name:**")
+                        st.info(doc['case_name'])
+                        
+                        st.markdown(f"**📜 Section Applied:**")
+                        st.info(doc['section_applied'])
+                        
+                        st.markdown(f"**⚖️ Court & Year:**")
+                        st.info(f"{doc['court']} ({doc['year']})")
+                        
+                        st.markdown(f"**📋 Complete Case Summary:**")
+                        st.text_area("", doc['summary'], height=200, key=f"case_summary_{i}", disabled=True)
+                        
+                        if doc['judgment_url']:
+                            st.markdown(f"**🔗 Official Judgment:**")
+                            st.link_button("View Full Case", doc['judgment_url'])
+        
+        # Context sent to LLM
+        with st.expander("🔍 Complete Context Sent to AI Model", expanded=False):
+            st.markdown("**This is the complete context that was sent to the AI model for analysis:**")
+            st.text_area("Complete Context", result['context'], height=400, disabled=True)
     
     # Sidebar with history
     with st.sidebar:
