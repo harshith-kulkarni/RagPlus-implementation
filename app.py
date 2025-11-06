@@ -8,9 +8,9 @@ import json
 import time
 from datetime import datetime
 
-# Pa0e0configuration
+# Page configuration
 st.set_page_config(
-    page_title=" Advanced RAG+ Legal AI",
+    page_title="⚖️ Advanced RAG+ Legal AI",
     page_icon="⚖️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -87,8 +87,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Configuration - Using Streamlit secrets for deployment
-PINECONE_API_KEY = st.secrets.get("PINECONE_API_KEY", "")
-GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY", "")
+try:
+    PINECONE_API_KEY = st.secrets["PINECONE_API_KEY"]
+    GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
+except KeyError:
+    st.error("❌ API keys not found in Streamlit secrets. Please add them in the Streamlit Cloud dashboard.")
+    st.stop()
+
 KNOWLEDGE_INDEX = "legal-knowledge-corpus"
 APPLICATION_INDEX = "legal-application-corpus"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
@@ -106,23 +111,21 @@ if 'summary_result' not in st.session_state:
 @st.cache_resource
 def initialize_rag_system():
     try:
-        # Check for API keys
-        if not PINECONE_API_KEY:
-            st.error("❌ Pinecone API key not found. Please add it to Streamlit secrets.")
-            return None
-        if not GEMINI_API_KEY:
-            st.error("❌ Gemini API key not found. Please add it to Streamlit secrets.")
-            return None
-            
-        embedding_model = SentenceTransformer(EMBEDDING_MODEL)
-        pc = Pinecone(api_key=PINECONE_API_KEY)
-        knowledge_index = pc.Index(KNOWLEDGE_INDEX)
-        application_index = pc.Index(APPLICATION_INDEX)
-        genai.configure(api_key=GEMINI_API_KEY)
-        llm = genai.GenerativeModel("gemini-2.0-flash")
+        with st.spinner("🔄 Loading AI models..."):
+            embedding_model = SentenceTransformer(EMBEDDING_MODEL)
+        
+        with st.spinner("🔄 Connecting to Pinecone..."):
+            pc = Pinecone(api_key=PINECONE_API_KEY)
+            knowledge_index = pc.Index(KNOWLEDGE_INDEX)
+            application_index = pc.Index(APPLICATION_INDEX)
+        
+        with st.spinner("🔄 Initializing Gemini AI..."):
+            genai.configure(api_key=GEMINI_API_KEY)
+            llm = genai.GenerativeModel("gemini-2.0-flash")
+        
         return AdvancedRAGSystem(embedding_model, knowledge_index, application_index, llm)
     except Exception as e:
-        st.error(f"Failed to initialize system: {e}")
+        st.error(f"❌ Failed to initialize system: {str(e)}")
         st.error("Please check your API keys and internet connection.")
         return None
 
@@ -134,40 +137,48 @@ class AdvancedRAGSystem:
         self.llm = llm
     
     def retrieve_knowledge(self, query: str, top_k: int = 3) -> List[Dict]:
-        query_embedding = self.embedder.encode(query).tolist()
-        results = self.knowledge_index.query(vector=query_embedding, top_k=top_k, include_metadata=True)
-        
-        knowledge_docs = []
-        for match in results['matches']:
-            knowledge_docs.append({
-                'id': match['id'],
-                'score': match['score'],
-                'section_reference': match['metadata']['section_reference'],
-                'statutory_text': match['metadata']['statutory_text'],
-                'original_question': match['metadata']['original_question'],
-                'context': match['metadata'].get('context', ''),
-                'type': 'KNOWLEDGE'
-            })
-        return knowledge_docs
+        try:
+            query_embedding = self.embedder.encode(query).tolist()
+            results = self.knowledge_index.query(vector=query_embedding, top_k=top_k, include_metadata=True)
+            
+            knowledge_docs = []
+            for match in results['matches']:
+                knowledge_docs.append({
+                    'id': match['id'],
+                    'score': match['score'],
+                    'section_reference': match['metadata'].get('section_reference', 'N/A'),
+                    'statutory_text': match['metadata'].get('statutory_text', 'N/A'),
+                    'original_question': match['metadata'].get('original_question', 'N/A'),
+                    'context': match['metadata'].get('context', ''),
+                    'type': 'KNOWLEDGE'
+                })
+            return knowledge_docs
+        except Exception as e:
+            st.error(f"Error retrieving knowledge: {e}")
+            return []
     
     def retrieve_applications(self, query: str, top_k: int = 3) -> List[Dict]:
-        query_embedding = self.embedder.encode(query).tolist()
-        results = self.application_index.query(vector=query_embedding, top_k=top_k, include_metadata=True)
-        
-        application_docs = []
-        for match in results['matches']:
-            application_docs.append({
-                'id': match['id'],
-                'score': match['score'],
-                'case_name': match['metadata']['case_name'],
-                'section_applied': match['metadata']['section_applied'],
-                'year': match['metadata']['year'],
-                'court': match['metadata']['court'],
-                'summary': match['metadata']['case_summary'],
-                'judgment_url': match['metadata']['judgment_url'],
-                'type': 'APPLICATION'
-            })
-        return application_docs
+        try:
+            query_embedding = self.embedder.encode(query).tolist()
+            results = self.application_index.query(vector=query_embedding, top_k=top_k, include_metadata=True)
+            
+            application_docs = []
+            for match in results['matches']:
+                application_docs.append({
+                    'id': match['id'],
+                    'score': match['score'],
+                    'case_name': match['metadata'].get('case_name', 'N/A'),
+                    'section_applied': match['metadata'].get('section_applied', 'N/A'),
+                    'year': match['metadata'].get('year', 0),
+                    'court': match['metadata'].get('court', 'N/A'),
+                    'summary': match['metadata'].get('case_summary', 'N/A'),
+                    'judgment_url': match['metadata'].get('judgment_url', ''),
+                    'type': 'APPLICATION'
+                })
+            return application_docs
+        except Exception as e:
+            st.error(f"Error retrieving applications: {e}")
+            return []
     
     def format_context(self, retrieval_results: Dict, mode: str = "RAG+") -> str:
         context_parts = []
@@ -226,7 +237,7 @@ PROVIDE YOUR COMPREHENSIVE LEGAL ANALYSIS:"""
             response = self.llm.generate_content(prompt)
             return response.text.strip()
         except Exception as e:
-            return f"Error generating response: {e}"
+            return f"Error generating response: {str(e)}"
     
     def generate_summary(self, original_answer: str) -> str:
         prompt = f"""You are a legal expert. Provide a CONCISE SUMMARY of the following legal analysis in exactly 200-300 words.
@@ -246,7 +257,7 @@ PROVIDE A CONCISE SUMMARY (200-300 words):"""
             response = self.llm.generate_content(prompt)
             return response.text.strip()
         except Exception as e:
-            return f"Error generating summary: {e}"
+            return f"Error generating summary: {str(e)}"
     
     def query(self, question: str, mode: str = "RAG+", word_count: int = 1000, knowledge_k: int = 3, application_k: int = 3) -> Dict:
         start_time = time.time()
@@ -305,12 +316,15 @@ def main():
     
     # Initialize system
     if st.session_state.rag_system is None:
-        with st.spinner("🔄 Initializing Advanced RAG+ Legal AI System..."):
-            st.session_state.rag_system = initialize_rag_system()
+        st.session_state.rag_system = initialize_rag_system()
     
     if st.session_state.rag_system is None:
-        st.error("❌ Failed to initialize system.")
+        st.error("❌ Failed to initialize system. Please check the deployment guide.")
+        st.info("📖 See DEPLOYMENT_GUIDE.md for setup instructions.")
         return
+    
+    # Success message
+    st.success("✅ RAG+ Legal AI System Initialized Successfully!")
     
     # Example queries
     st.markdown("### 📋 Example Legal Questions")
@@ -346,7 +360,6 @@ def main():
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        # Word count slider
         word_count = st.slider(
             "📝 Target Word Count",
             min_value=100,
@@ -358,7 +371,6 @@ def main():
         st.markdown(f"**Target:** {word_count} words")
     
     with col2:
-        # RAG mode selection
         st.markdown("🔍 **Analysis Mode**")
         mode = st.radio(
             "Select analysis mode:",
@@ -368,7 +380,6 @@ def main():
         selected_mode = "RAG+" if "RAG+" in mode else "RAG"
     
     with col3:
-        # Source count options
         knowledge_k = st.selectbox("📚 Knowledge Sources", [1, 2, 3, 4, 5], index=2)
         if selected_mode == "RAG+":
             application_k = st.selectbox("⚖️ Case Sources", [1, 2, 3, 4, 5], index=2)
@@ -468,7 +479,7 @@ def main():
         knowledge_matches = len(result['retrieval_results']['knowledge'])
         application_matches = len(result['retrieval_results']['applications'])
         
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         
         with col1:
             st.markdown(f"""
@@ -494,26 +505,14 @@ def main():
             </div>
             """, unsafe_allow_html=True)
         
-        
-        # Sources
-        st.markdown("### 📚 Source Analysis")
-        
-        if result['retrieval_results']['knowledge']:
-            st.markdown("#### 📖 Legal Knowledge Sources")
-            for i, doc in enumerate(result['retrieval_results']['knowledge'], 1):
-                with st.expander(f"📜 [STATUTE {i}] {doc['section_reference']} (Score: {doc['score']:.3f})"):
-                    st.markdown(f"**Sections:** {doc['section_reference']}")
-                    st.markdown(f"**Relevance:** {doc['score']:.4f}")
-                    st.text_area("Legal Text", doc['statutory_text'], height=150, key=f"statute_{i}")
-        
-        if result['mode'] == "RAG+" and result['retrieval_results']['applications']:
-            st.markdown("#### ⚖️ Case Law Sources")
-            for i, doc in enumerate(result['retrieval_results']['applications'], 1):
-                with st.expander(f"🏛️ [CASE {i}] {doc['case_name']} (Score: {doc['score']:.3f})"):
-                    st.markdown(f"**Case:** {doc['case_name']}")
-                    st.markdown(f"**Section:** {doc['section_applied']}")
-                    st.markdown(f"**Court:** {doc['court']} ({doc['year']})")
-                    st.text_area("Case Summary", doc['summary'], height=120, key=f"case_{i}")
+        with col4:
+            accuracy = (result['actual_word_count'] / result['word_count']) * 100
+            st.markdown(f"""
+            <div class="metric-card">
+                <h2>{accuracy:.0f}%</h2>
+                <p>🎯 Target Accuracy</p>
+            </div>
+            """, unsafe_allow_html=True)
     
     # Sidebar with history
     with st.sidebar:
