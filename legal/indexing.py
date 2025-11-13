@@ -23,8 +23,8 @@ BATCH_SIZE = 100
 # Initialize
 print("\n[1/4] Loading CSVs...")
 try:
-    knowledge_df = pd.read_csv('knowledge_corpus.csv')
-    application_df = pd.read_csv('application_corpus.csv')
+    knowledge_df = pd.read_csv('legal/knowledge_corpus.csv')
+    application_df = pd.read_csv('legal/application_corpus.csv')
     print(f"✓ Knowledge corpus: {len(knowledge_df)} entries")
     print(f"✓ Application corpus: {len(application_df)} entries")
 except Exception as e:

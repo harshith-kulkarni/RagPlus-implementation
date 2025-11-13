@@ -1,26 +1,148 @@
 # Environment and secrets
 .env
+.gitignore_CHANGES.md
+.env.local
+.env.*.local
 .streamlit/secrets.toml
 
-# Data files (too large for git)
-application_corpus.csv
-knowledge_corpus.csv
+# Data files - Corpus files (too large for git)
+**/application_corpus.csv
+**/knowledge_corpus.csv
+**/application_corpus_*.csv
+**/knowledge_corpus_*.csv
+legal/application_corpus.csv
+legal/knowledge_corpus.csv
+math/application_corpus.csv
+math/knowledge_corpus.csv
 
-# Python cache
+# JSON data files (large datasets)
+**/application_corpus*.json
+**/knowledge_corpus*.json
+math/application_corpus_maths.json
+math/knowledge_corpus_math.json
+
+# Metrics and evaluation results
+metrics_summary.csv
+legal_metrics_detailed.csv
+math_metrics_detailed.csv
+rag_evaluation_results.csv
+*_metrics_*.csv
+*_evaluation_*.csv
+
+# Generated visualizations
+*.png
+*.jpg
+*.jpeg
+*.gif
+rag_metrics_comprehensive.png
+
+# Python cache and compiled files
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 .Python
 *.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
 .pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
 
-# IDE
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+virtualenv/
+
+# IDE and editor files
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
 
-# OS
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*~
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb
+
+# Documentation builds
+docs/_build/
+site/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Streamlit cache
+.streamlit/
+
+# Model files (if any)
+*.pt
+*.pth
+*.h5
+*.pkl
+*.pickle
+*.joblib
+
+# Large data files
+*.csv.gz
+*.json.gz
+*.parquet
+
+# Test files
+test_*.py
+*_test.py
+
+# Backup files
+*.bak
+*.backup
+*_backup.*
+
+# Node modules (if any frontend)
+node_modules/
+
+# Package manager files
+package-lock.json
+yarn.lock
+
+# Pinecone index files (if cached locally)
+.pinecone/
+
+# Temporary Python files
+*.py[cod]
+*$py.class
