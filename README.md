@@ -309,7 +309,7 @@ The system displays:
 
 Generate fresh metrics:
 ```bash
-python evaluate_both_domains.py
+python metrics/evaluate_both_domains.py
 ```
 
 This creates:
@@ -325,31 +325,39 @@ This creates:
 rpfinal/
 ├── app.py                          # Main Streamlit application
 ├── requirements.txt                # Python dependencies
+├── packages.txt                    # System dependencies
 ├── .env                           # Environment variables (create this)
 ├── README.md                      # This file
-├── METRICS_GUIDE.md               # Detailed metrics explanation
-├── FINAL_STATUS.md                # Complete feature status
+├── SETUP.md                       # Setup instructions
 │
-├── evaluate_both_domains.py       # Metrics evaluation script
-├── check_sample_data.py           # Verify indexed data
-├── convert_all_math_json_to_csv.py # JSON to CSV converter
-├── run_legal_indexing.py          # Index legal data
-├── run_math_indexing.py           # Index math data
+├── .streamlit/                    # Streamlit configuration
+│   ├── config.toml                # App configuration
+│   └── secrets.toml               # API keys (local only)
 │
-├── metrics_summary.csv            # Aggregate metrics
-├── legal_metrics_detailed.csv     # Per-query legal metrics
-├── math_metrics_detailed.csv      # Per-query math metrics
-│
-├── legal/                         # Legal domain data
+├── legal/                         # Legal domain
 │   ├── knowledge_corpus.csv       # 50 legal concepts
-│   └── application_corpus.csv     # 220 legal cases
+│   ├── application_corpus.csv     # 220 legal cases
+│   ├── indexing.py                # Indexing script
+│   └── run_legal_indexing.py     # Run indexing
 │
-└── math/                          # Math domain data
-    ├── knowledge_corpus_math.json # Source: 62 concepts
-    ├── application_corpus_maths.json # Source: 800 problems
-    ├── knowledge_corpus.csv       # Processed: 62 concepts
-    └── application_corpus.csv     # Processed: 800 problems
-```
+├── math/                          # Math domain
+│   ├── knowledge_corpus_math.json # Source: 62 concepts
+│   ├── application_corpus_maths.json # Source: 800 problems
+│   ├── knowledge_corpus.csv       # Processed: 62 concepts
+│   ├── application_corpus.csv     # Processed: 800 problems
+│   ├── indexing.py                # Indexing script
+│   ├── run_math_indexing.py      # Run indexing
+│   └── convert_all_math_json_to_csv.py # JSON converter
+│
+├── metrics/                       # Evaluation metrics
+│   ├── evaluate_both_domains.py  # Metrics evaluation
+│   ├── metrics_summary.csv       # Aggregate metrics
+│   ├── legal_metrics_detailed.csv # Legal metrics
+│   ├── math_metrics_detailed.csv # Math metrics
+│   └── METRICS_GUIDE.md          # Metrics documentation
+│
+└── check_sample_data.py          # Verify indexed data
+
 
 ---
 
@@ -531,9 +539,10 @@ This system implements and extends the **RAG+** architecture:
 python check_sample_data.py
 
 # Evaluate metrics
-python evaluate_both_domains.py
+python metrics/evaluate_both_domains.py
 
 # Convert new data
+python math/convert_all_math_json_to_csv.py
 python convert_all_math_json_to_csv.py
 ```
 

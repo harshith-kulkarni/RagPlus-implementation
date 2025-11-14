@@ -608,7 +608,7 @@ if st.session_state.selected_domain is None:
     st.markdown("## 📈 Performance Metrics")
     
     try:
-        metrics_df = pd.read_csv('metrics_summary.csv')
+        metrics_df = pd.read_csv('metrics/metrics_summary.csv')
         
         tab1, tab2, tab3 = st.tabs(["📊 Overview", "🎯 Relevance Scores", "📋 Detailed Metrics"])
         
@@ -782,7 +782,7 @@ if st.session_state.selected_domain is None:
             )
     
     except FileNotFoundError:
-        st.warning("⚠️ Metrics data not found. Run `python evaluate_both_domains.py` to generate metrics.")
+        st.warning("⚠️ Metrics data not found. Run `python metrics/evaluate_both_domains.py` to generate metrics.")
     except Exception as e:
         st.error(f"❌ Error loading metrics: {str(e)}")
     
