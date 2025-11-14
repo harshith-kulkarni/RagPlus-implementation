@@ -2,7 +2,7 @@ streamlit
 pandas
 numpy
 sentence-transformers
-pinecone-client
+pinecone
 groq
 python-dotenv
 plotly
