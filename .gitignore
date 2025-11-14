@@ -21,12 +21,12 @@ math/knowledge_corpus.csv
 math/application_corpus_maths.json
 math/knowledge_corpus_math.json
 
-# Metrics and evaluation results
-metrics_summary.csv
+# Metrics and evaluation results (exclude detailed, keep summary)
+# metrics_summary.csv - ALLOW THIS FILE (needed for deployment)
 legal_metrics_detailed.csv
 math_metrics_detailed.csv
 rag_evaluation_results.csv
-*_metrics_*.csv
+*_metrics_detailed.csv
 *_evaluation_*.csv
 
 # Generated visualizations
